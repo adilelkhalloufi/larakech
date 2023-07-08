@@ -5,6 +5,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import React from 'react';
 import HeaderMenu from '../Components/HeaderMenu';
@@ -12,41 +14,53 @@ import {useNavigation} from '@react-navigation/native';
 import ItemContact from '../Components/ItemContact';
 import {useState} from 'react';
 import {it} from 'node:test';
+import axios from 'axios';
+import {URL_API} from '../Config/Config';
+import {useEffect} from 'react';
 
 export default function ListContact() {
-  const [MyListContact, setMyListContact] = useState([
-    {
-      name: 'Adil elkhalloufi',
-      tag: 'HOR LINGE',
-      badge: true,
-      badgeValue: 'Client',
-    },
-    {
-      name: 'HICHAM',
-      tag: 'HOR LINGE',
-      badge: true,
-      badgeValue: 'Client',
-    },
-    {
-      name: 'SAMIR',
-      tag: 'HOR LINGE',
-      badge: true,
-      badgeValue: 'Client',
-    },
-    {
-      name: 'ZOUBIR',
-      tag: 'HOR LINGE',
-      badge: true,
-      badgeValue: 'Client',
-    },
-    {
-      name: 'TARIK',
-      tag: 'HOR LINGE',
-      badge: true,
-      badgeValue: 'Client',
-    },
-  ]);
+  const [MyListContact, setMyListContact] = useState([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    GetContacts();
+  }, []);
+  const GetContacts = async () => {
+    setIsLoading(true);
+
+    try {
+      axios.get(URL_API + `contacts?page=${page}`).then(res => {
+        setMyListContact([...MyListContact, ...res.data?.data]);
+        setPage(res.data?.current_page);
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+
+    setIsLoading(false);
+  };
   const navigate = useNavigation();
+  const renderItem = ({item}) => {
+    return (
+      <ItemContact
+        onclick={() => {
+          navigate.navigate('DetailContact', {
+            item: item,
+          });
+        }}
+        name={item.nom + ' ' + item.prenom}
+        key={item.cle}
+        statut_couleur={item.statut_couleur}
+        statut_label={item.statut_label}
+        entreprise={item.entreprise}
+      />
+    );
+  };
+  const renderFooter = () => {
+    if (!isLoading) return null;
+
+    return <ActivityIndicator color="red" />;
+  };
   return (
     <SafeAreaView style={{flex: 1, position: 'relative'}}>
       <HeaderMenu search={true} />
@@ -66,45 +80,35 @@ export default function ListContact() {
         }}>
         <Image source={require('../../Assets/Images/add-user.png')}></Image>
       </TouchableOpacity>
-      <ScrollView>
-        <View
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#F6F7F8',
+        }}>
+        <TouchableOpacity
+          onPress={() => {
+            navigate.goBack();
+          }}
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#F6F7F8',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            padding: 4,
           }}>
-          <TouchableOpacity
-            onPress={() => {
-              navigate.goBack();
-            }}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              padding: 4,
-            }}>
-            <Image source={require('../../Assets/Images/left.png')} />
-          </TouchableOpacity>
-          <Text>Contact</Text>
-        </View>
-        {MyListContact.map((item, index) => {
-          return (
-            <ItemContact
-              onclick={() => {
-                navigate.navigate('DetailContact', {
-                  item: item,
-                });
-              }}
-              key={index}
-              name={item.name}
-              tag={item.tag}
-              badge={item.badge}
-              badgeValue={item.badgeValue}
-            />
-          );
-        })}
-      </ScrollView>
+          <Image source={require('../../Assets/Images/left.png')} />
+        </TouchableOpacity>
+        <Text>Contact</Text>
+      </View>
+      <FlatList
+        data={MyListContact}
+        renderItem={renderItem}
+        keyExtractor={item => item.cle.toString()}
+        onEndReached={GetContacts}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={renderFooter}
+      />
     </SafeAreaView>
   );
 }

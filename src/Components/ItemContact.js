@@ -4,9 +4,9 @@ import React from 'react';
 export default function ItemContact(props) {
   return (
     <TouchableOpacity
-      key={props.index}
+      key={props?.index}
       onPress={() => {
-        props.onclick();
+        props?.onclick();
       }}
       style={{
         flexDirection: 'row',
@@ -28,16 +28,21 @@ export default function ItemContact(props) {
             marginLeft: 10,
           }}>
           <Text style={{fontSize: 16, fontWeight: '900', color: '#000'}}>
-            {props.name}
+            {props?.name}
           </Text>
           <Text style={{fontSize: 16, fontWeight: '500', color: 'gray'}}>
-            {props.tag}
+            {props?.entreprise}
           </Text>
         </View>
       </View>
-      {props.badge == true ? (
-        <View style={{backgroundColor: '#698C73', padding: 3, borderRadius: 5}}>
-          <Text style={{color: '#fff'}}>{props.badgeValue}</Text>
+      {props?.statut_label ? (
+        <View
+          style={{
+            backgroundColor: props?.statut_couleur,
+            padding: 3,
+            borderRadius: 5,
+          }}>
+          <Text style={{color: '#fff'}}>{props.statut_label}</Text>
         </View>
       ) : null}
     </TouchableOpacity>

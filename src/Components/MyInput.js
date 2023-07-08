@@ -17,6 +17,7 @@ export default function MyInput(props) {
         }}>
         <TextInput
           placeholder={props.label}
+          defaultValue={props.value}
           style={{
             borderWidth: 1,
             borderColor: 'gray',
